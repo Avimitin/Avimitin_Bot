@@ -22,6 +22,8 @@ TOKEN = bot_token['TOKEN']
 # 实例化机器人
 bot = telebot.TeleBot(TOKEN)
 
+# 加载用户信息
+MYID = bot_token['USERID']
 
 # 命令返回语句
 @bot.message_handler(commands=['start'])
@@ -33,9 +35,36 @@ def send_welcome(message):
 
 @bot.message_handler(commands=['help'])
 def send_help(message):
-    new_message = bot.send_message(message.chat.id, "你需要什么帮助？随便提，反正我帮不上忙")
+    new_message = bot.send_message(message.chat.id,
+                                   """
+<b>Author</b>: 
+
+@SaiToAsuKa_kksk
+
+<b>Sponsor</b>:
+
+暂时还没有赞助，假如你对我的 bot 感兴趣非常欢迎私聊我
+
+<b>Guide</b>:
+
+大部分功能为管理员专属，目前普通用户可用 /post 功能投稿自己感兴趣的内容
+
+<b>Affiliate</b>:
+
+我真的真的续不起服务器了QWQ，快点击 AFF 帮助我吧
+
+<a href="https://www.vultr.com/?ref=8527101-6G">【VULTR1】</a>    <a href="https://www.vultr.com/?ref=8527098">【VULTR2】</a>
+
+<b>Group</b>:
+
+NSFW 中文水群: @ghs_chat
+NSFW 本子推荐频道: @hcomic
+BOT 更新频道: @avimitinbot
+BOT 测试群组: @avimitin_test
+                                    """, parse_mode="HTML",disable_web_page_preview=True)
     time.sleep(120)
-    bot.delete_message(chat_id=new_message.chat.id, message_id=new_message.message_id)
+    bot.delete_message(chat_id=new_message.chat.id,
+                       message_id=new_message.message_id)
 
 
 # 关键词添加程序
@@ -134,6 +163,103 @@ def reply_msg(message):
         new_msg = bot.send_message(message.chat.id, reply_words)
 
 
+# 使用机器人主动私聊别的房间
+@bot.message_handler(commands=['send'])
+def get_a_message(message):
+    if message.from_user.id == MYID:
+        markup = types.InlineKeyboardMarkup()
+        # 首先需要在 config 文件夹里创建一个 chat_info.json 文件
+        with open("config/chat_info.json", 'r', encoding='utf-8') as chat_file:
+            # 空文件测试
+            test = chat_file.read()
+            if len(test) != 0:
+                chat_file.seek(0, 0)
+                chat_info = json.load(chat_file)
+            else:
+                bot.send_message(MYID, "chat_info is empty! Use /addchatinfo to add chat")
+                return
+
+        keys = list(chat_info.keys())
+
+        for key in keys:
+            item = types.InlineKeyboardButton(key, callback_data="chat_id=%d" % chat_info[key])
+            markup.add(item)
+
+        bot.send_message(MYID, "选择一个已存聊天室，或使用 /addchatid 添加新聊天室", reply_markup=markup)
+
+    else:
+        bot.send_message(message.chat.id, "只有管理员可以使用这一功能")
+        bot.send_message(MYID, "@%s 正在使用 send 功能" % message.from_user.username)
+
+# 初始化变量CHATID
+CHATID = 0
+
+@bot.callback_query_handler(func=lambda call: re.match('chat_id=', call.data))
+def attach_to_chat(call):
+    global CHATID
+    
+    chat_id = call.data.split("chat_id=")[1]
+    CHATID = chat_id
+    msg = bot.send_message(MYID, '已经连接到 `%s` 房间，请发送一条消息' % chat_id, parse_mode='Markdown')
+    bot.register_next_step_handler(msg, send_msg_to_chat)
+
+
+def send_msg_to_chat(message):
+    msg = message.text
+    bot.send_message(CHATID, msg)
+    bot.send_message(MY_ID, '发送成功')
+
+
+# 添加新的聊天室（需要bot在群里面，或是已经启用过的私聊）
+@bot.message_handler(commands=["addchatid"])
+def add_chat(message):
+    if message.chat.id != MYID:
+        bot.send_message(message.chat.id, "不要乱动指令")
+        return
+    
+    # 测试命令后是否带着chat id
+    if len(message.text) == 10:
+        bot.send_message(message.chat.id, "请在指令后带上聊天室的 ChatID")
+    
+    else:
+        # 先测试是否能发送消息再存
+        chat_id = message.text.split("/addchatid ")[1]
+        msg = bot.send_message(message.chat.id, "尝试发送消息")
+
+        try:
+            chat_info = bot.send_message(chat_id, "Testing message")
+        except telebot.apihelper.ApiException:
+            bot.send_message(message.chat.id, "无法发送信息，检查一下是否是存在的群")
+        else:
+            msg = bot.edit_message_text("尝试成功，正在写入", msg.chat.id, msg.message_id)
+
+            with open("config/chat_info.json", "r+", encoding="utf-8") as chat_info_file:
+                test_null = chat_info_file.read()
+                
+                # 信息初始化
+                items = {
+                    "title": chat_info.chat.title,
+                    "username": chat_info.chat.username,
+                    "first_name": chat_info.chat.username,
+                    "last_name": chat_info.chat.last_name
+                }
+                for item in items.values():
+                    if item != None:
+                        name = item
+
+                # 检查是否为空文件
+                if len(test_null) != 0:
+                    chat_info_file.seek(0, 0)
+                    chat_dict = json.load(chat_info_file)
+                    chat_dict[name] = chat_id
+                else:
+                    chat_dict = {name: chat_id}
+
+            with open("config/chat_info.json", "r+", encoding="utf-8") as chat_info_file:
+                json.dump(chat_dict, chat_info_file, ensure_ascii=False)
+            bot.edit_message_text("存储成功", msg.chat.id, msg.message_id)
+
+
 if __name__ == '__main__':
     # 轮询
-    bot.polling()
+    bot.polling(none_stop=True)
