@@ -10,7 +10,7 @@ import logging
 logger = telebot.logger
 telebot.logger.setLevel(logging.DEBUG)
 
-with open('config/config.yaml', 'r+', encoding='UTF-8') as token_file:
+with open('config/config.yml', 'r+', encoding='UTF-8') as token_file:
     bot_token = yaml.load(token_file, Loader=yaml.FullLoader)
 TOKEN = bot_token['TOKEN2']
 bot = telebot.TeleBot(TOKEN)
