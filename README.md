@@ -54,3 +54,15 @@
 - 机器人目前功能：转发消息并回复，可用于客服或联系被Spam用户。
 - 机器人依赖：`PyTelegramBotAPI`
 - 机器人特性：普通的转发机器人。
+- 目前对该 `bot` 增加了 `docker` 编译支持
+
+```bash
+#拷贝项目到本地
+git clone https://github.com/Avimitin/Avimitin_Bot.git
+#安装好 docker 之后进行构建
+docker build -t bot .
+#构建成功之后可以使用 images 来查看镜像
+docker images
+#运行 docker
+docker run -it bot
+```
