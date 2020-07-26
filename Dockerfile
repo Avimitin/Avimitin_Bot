@@ -1,7 +1,11 @@
 FROM python:3.8.2
-MAINTAINER avimitin avimitin@gmail.com
-ADD ./ /code/
-COPY Bot2.py /code/
-WORKDIR /code
-RUN pip3 install -r requirements.txt
-CMD ["python3","Bot2.py"]
+LABEL maintainer="avimitin<avimitin@gmail.com>"
+
+WORKDIR /usr/src/app
+
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+CMD ["python3", "Bot2.py"]
