@@ -8,4 +8,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+VOLUME ["/usr/src/app/config"]
+
 CMD ["python3", "Bot2.py"]
