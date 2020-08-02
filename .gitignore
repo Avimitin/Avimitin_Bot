@@ -1,5 +1,11 @@
 .git
 .vscode
 .idea
-config/config.py
-config/__pycache__
+
+# config directory
+config
+
+# Python stuff
+__pycache__/
+*.py[cod]
+*$py.class
