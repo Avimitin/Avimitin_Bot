@@ -55,28 +55,22 @@ def forward_all(message):
     当机器人收到的消息来自sample时，则会读取sample所回复对话的房间号，并将sample
     发的回复转发到消息来源处。假如消息来源于其他人，bot会把消息转发给sample。
     '''
-    if message.from_user.username == 'sample':
+    if message.from_user.id == USERID:
         if message.reply_to_message:
-            try:
-                reply_msg = message.reply_to_message.text
-                reply_chat_id = re.search(r'^(\d+)$', reply_msg, re.M)[0]
-                bot.send_message(reply_chat_id, message.text)
-                bot.send_message(message.chat.id, '发送成功')
-            except telebot.apihelper.ApiException:
-                bot.send_message(message.chat.id, '该房间不存在！')
+            reply_msg = message.reply_to_message.text
+            reply_chat_id = re.search(r'^(\d+)$', reply_msg, re.M)[0]
+            bot.send_message(reply_chat_id, message.text)
+            bot.send_message(message.chat.id, '发送成功')
         else:
-            msg_from_chat_id = message.chat.id
-            msg_from_user = message.from_user.username
-            # 填入自己的chat id
-            bot.send_message('YOUR_CHAT_ID', '用户：@{} 从\n房间={}\n向您发来了一条消息:\n{}'.format(msg_from_user,msg_from_chat_id,message.text))
+            bot.send_message(USERID, "您是不是想回复？请先引用消息。")
     else:
         new_msg = bot.send_message(message.chat.id, '正在发送您的消息。\n（请注意，只有提醒发送成功才真的发送了，假如消息多次发送失败使用 /report 发送bug，或者请联系管理员）')
 
         msg_from_chat_id = message.chat.id
         msg_from_user = message.from_user.username
-        bot.send_message('YOUR_CHAT_ID', '用户：@{} 从房间\n{}\n向您发来了一条消息:\n{}'.format(msg_from_user,msg_from_chat_id,message.text))
+        bot.send_message(USERID, '用户：@{} 从房间\n{}\n向您发来了一条消息:\n{}'.format(msg_from_user,msg_from_chat_id,message.text))
         
         bot.edit_message_text(text='发送成功', chat_id = new_msg.chat.id, message_id=new_msg.message_id)
 
 
-bot.polling()
+bot.polling(none_stop=True)
