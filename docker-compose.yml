@@ -1,0 +1,7 @@
+version: '2.0'
+services:
+  avimitin_bot:
+    build: .
+    restart: always
+    volumes:
+    - ./config:/usr/src/app/config
