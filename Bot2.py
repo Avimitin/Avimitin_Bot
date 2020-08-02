@@ -6,13 +6,10 @@ import yaml
 import json
 import re
 import logging
+from config import config
 
-logger = telebot.logger
-telebot.logger.setLevel(logging.DEBUG)
-
-with open('config/config.yml', 'r+', encoding='UTF-8') as token_file:
-    bot_token = yaml.load(token_file, Loader=yaml.FullLoader)
-TOKEN = bot_token['TOKEN2']
+TOKEN = config.TOKEN2
+USERID = config.USERID
 bot = telebot.TeleBot(TOKEN)
 
 
@@ -23,7 +20,7 @@ def send_message(message):
 
 @bot.message_handler(commands=['help'])
 def send_message(message):
-    bot.send_message(message.chat.id, '没有帮助菜单，我就是没有感情的转发机器')
+    bot.send_message(message.chat.id, '这是一个用来转发消息的bot')
 
 # 解除+86 spam 的教程
 @bot.message_handler(commands=['despam'])
@@ -35,17 +32,14 @@ def send_message(message):
 def report_bug(message):
     new_msg = bot.send_message(message.chat.id, '正在提交您的bug')
 
-    try:
-        if len(message.text) == 7:
-            raise ValueError('wrong length')
-
+    
+    if len(message.text) == 7:
+        bot.send_message(message.chat.id, '请带上您的问题再report谢谢')
+    else:
         text = message.text[7:]
         # 这里是我的TG账号
-        bot.send_message('649191333', '有人向你提交了一个bug:{}'.format(text))
-        bot.edit_message_text('发送成功，感谢反馈', chat_id=new_msg.chat.id, message_id=new_msg.message_id)
-
-    except ValueError:
-        bot.send_message(message.chat.id, '请带上您的问题再report谢谢')
+        bot.send_message(649191333, '有人向你提交了一个bug:{}'.format(text))
+        bot.edit_message_text('发送成功，感谢反馈', chat_id=new_msg.chat.id, message_id=new_msg.message_id)    
 
 
 def msg_filter(sentence):
