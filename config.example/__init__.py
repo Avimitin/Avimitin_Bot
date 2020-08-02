@@ -1,6 +1,3 @@
-# Author: Avimitin
-# HERE PUT ALL YOUR CONFIG FILE
-
-TOKEN= "1234567890:ABCDefgHIJKlmn"
-TOKEN2 = "0987654321:OPQRSTuvwXYz"
-USERID = "123456"
+##############################
+# Save configs to: config.py #
+##############################
